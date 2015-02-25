@@ -21,18 +21,27 @@ public class Doorman extends Thread {
     /**
      * Starts the doorman running as a separate thread.
      */
-    public void startThread() throws InterruptedException {
-        this.sleep(Globals.barberSleep);
+    public void startThread() {
+        while (true) {
+            addCustomer();
+            try {
+                sleep(Globals.doormanSleep);
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
     }
 
     /**
      * Stops the doorman thread.
      */
     public void stopThread() {
-        // Incomplete
+        System.out.println("goodbye");
     }
 
     public void addCustomer() {
-
+        gui.println("New customer");
+        int pos = queue.enqueue(new Customer());
+        gui.println(pos == -1 ? "No room :(" : "Customer placed in pos. " + Integer.toString(pos));
     }
 }

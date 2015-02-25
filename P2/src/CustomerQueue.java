@@ -16,19 +16,23 @@ public class CustomerQueue {
         this.gui = gui;
         this.queue = new Customer[queueLength];
         this.firstInQueue = 0;
-        this.lastInQueue = -1;
+        this.lastInQueue = 0;
 	}
 
-	public boolean enqueue(Customer customer) {
-        if (queue[lastInQueue] != null) {
-            return false;
+	public int enqueue(Customer customer) {
+        int queueCurrentLast = lastInQueue;
+        int nextQueuePos = (lastInQueue + 1) % queue.length;
+
+        if (queue[nextQueuePos] != null) {
+            return -1;
         }
 
-        queue[lastInQueue] = customer;
+        queue[nextQueuePos] = customer;
+        gui.fillLoungeChair(nextQueuePos, customer);
 
-        lastInQueue = (lastInQueue + 1) % queue.length;
+        lastInQueue = nextQueuePos;
 
-        return true;
+        return queueCurrentLast;
     }
 
     public Customer dequeue() {
@@ -38,6 +42,7 @@ public class CustomerQueue {
         }
 
         queue[firstInQueue] = null;
+        gui.emptyLoungeChair(firstInQueue);
 
         firstInQueue = (firstInQueue + 1) % queue.length;
 
