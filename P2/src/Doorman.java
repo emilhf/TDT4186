@@ -2,29 +2,37 @@
  * This class implements the doorman's part of the
  * Barbershop thread synchronization example.
  */
-public class Doorman {
-	/**
-	 * Creates a new doorman.
-	 * @param queue		The customer queue.
-	 * @param gui		A reference to the GUI interface.
-	 */
-	public Doorman(CustomerQueue queue, Gui gui) { 
-		// Incomplete
-	}
+public class Doorman extends Thread {
+    /**
+     * Creates a new doorman.
+     *
+     * @param queue        The customer queue.
+     * @param gui        A reference to the GUI interface.
+     */
 
-	/**
-	 * Starts the doorman running as a separate thread.
-	 */
-	public void startThread() {
-		// Incomplete
-	}
+    CustomerQueue queue;
+    Gui gui;
 
-	/**
-	 * Stops the doorman thread.
-	 */
-	public void stopThread() {
-		// Incomplete
-	}
+    public Doorman(CustomerQueue queue, Gui gui) {
+        this.queue = queue;
+        this.gui = gui;
+    }
 
-	// Add more methods as needed
+    /**
+     * Starts the doorman running as a separate thread.
+     */
+    public void startThread() throws InterruptedException {
+        this.sleep(Globals.barberSleep);
+    }
+
+    /**
+     * Stops the doorman thread.
+     */
+    public void stopThread() {
+        // Incomplete
+    }
+
+    public void addCustomer() {
+
+    }
 }
