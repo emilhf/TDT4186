@@ -34,35 +34,37 @@ public class Barber implements Runnable {
         while (true) {
             gui.barberIsSleeping(pos);
             gui.println("Barber " + Integer.toString(pos) + " start daydream");
-            try {
-                int min = -Globals.barberSleep / 2;
-                int max = -Globals.barberSleep / 2;
-                int r = min + (int) (Math.random() * (max - min + 1));
-                Thread.sleep(Globals.barberSleep + r);
-            } catch (InterruptedException e) {
-                break;
-            }
+            barberSleep();
+            gui.println("Barber " + Integer.toString(pos) + " end daydream");
             gui.barberIsAwake(pos);
 
             Customer customer = getCustomerFromQueue();
-            if (customer == null) {
-                continue;
-            }
 
             gui.fillBarberChair(pos, customer);
             gui.println("Barber " + Integer.toString(pos) + " start work");
-
-            try {
-                int min = -Globals.barberWork / 2;
-                int max = -Globals.barberWork / 2;
-                int r = min + (int) (Math.random() * (max - min + 1));
-                Thread.sleep(Globals.barberWork + r);
-            } catch (InterruptedException e) {
-                break;
-            }
-
+            barberWork();
             gui.emptyBarberChair(pos);
             gui.println("Barber " + Integer.toString(pos) + " end work");
+        }
+    }
+
+    private void barberSleep() {
+        try {
+            int min = -Globals.barberSleep / 2;
+            int max = -Globals.barberSleep / 2;
+            int r = min + (int) (Math.random() * (max - min + 1));
+            Thread.sleep(Globals.barberSleep + r);
+        } catch (InterruptedException e) {
+        }
+    }
+
+    private void barberWork() {
+        try {
+            int min = -Globals.barberWork / 2;
+            int max = -Globals.barberWork / 2;
+            int r = min + (int) (Math.random() * (max - min + 1));
+            Thread.sleep(Globals.barberWork + r);
+        } catch (InterruptedException e) {
         }
     }
 

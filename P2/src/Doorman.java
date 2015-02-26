@@ -30,14 +30,17 @@ public class Doorman implements Runnable {
     public void run() {
         while (true) {
             addCustomer();
-            try {
-                int min = -Globals.doormanSleep / 2;
-                int max = -Globals.doormanSleep / 2;
-                int r = min + (int) (Math.random() * (max - min + 1));
-                Thread.sleep(Globals.doormanSleep + r);
-            } catch (InterruptedException e) {
-                break;
-            }
+            doormanSleep();
+        }
+    }
+
+    private void doormanSleep() {
+        try {
+            int min = -Globals.doormanSleep / 2;
+            int max = -Globals.doormanSleep / 2;
+            int r = min + (int) (Math.random() * (max - min + 1));
+            Thread.sleep(Globals.doormanSleep + r);
+        } catch (InterruptedException e) {
         }
     }
 
@@ -49,6 +52,6 @@ public class Doorman implements Runnable {
     public void addCustomer() {
         gui.println("New customer");
         int pos = queue.enqueue(new Customer());
-        gui.println(pos == -1 ? "No room :(" : "Customer placed in pos. " + Integer.toString(pos));
+        gui.println("Customer placed in pos. " + Integer.toString(pos));
     }
 }

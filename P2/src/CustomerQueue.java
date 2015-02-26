@@ -8,23 +8,27 @@ public class CustomerQueue {
     private int queueTailPointer;
 
     /**
-	 * Creates a new customer queue.
-	 * @param queueLength	The maximum length of the queue.
-	 * @param gui			A reference to the GUI interface.
-	 */
+     * Creates a new customer queue.
+     *
+     * @param queueLength The maximum length of the queue.
+     * @param gui         A reference to the GUI interface.
+     */
     public CustomerQueue(int queueLength, Gui gui) {
         this.gui = gui;
         this.queue = new Customer[queueLength];
         this.queueHeadPointer = 0;
         this.queueTailPointer = -1;
-	}
+    }
 
-	public int enqueue(Customer customer) {
+    public synchronized int enqueue(Customer customer) {
         int currentQueueTail = queueTailPointer;
         int nextQueueTail = (queueTailPointer + 1) % queue.length;
 
-        if (queue[nextQueueTail] != null) {
-            return -1;
+        while (queue[nextQueueTail] != null) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+            }
         }
 
         queue[nextQueueTail] = customer;
@@ -32,13 +36,23 @@ public class CustomerQueue {
 
         queueTailPointer = nextQueueTail;
 
+        notifyAll();
         return currentQueueTail;
     }
 
-    public Customer dequeue() {
-        Customer r = queue[queueHeadPointer];
-        if (r == null) {
-            return null;
+    public synchronized Customer dequeue() {
+        Customer r;
+        while (true) {
+            r = queue[queueHeadPointer];
+
+            if (r == null) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                }
+            } else {
+                break;
+            }
         }
 
         queue[queueHeadPointer] = null;
@@ -46,6 +60,7 @@ public class CustomerQueue {
 
         queueHeadPointer = (queueHeadPointer + 1) % queue.length;
 
+        notifyAll();
         return r;
     }
 }
