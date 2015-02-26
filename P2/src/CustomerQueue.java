@@ -4,8 +4,8 @@
 public class CustomerQueue {
     private Gui gui;
     private Customer[] queue;
-    private int firstInQueue;
-    private int lastInQueue;
+    private int queueHeadPointer;
+    private int queueTailPointer;
 
     /**
 	 * Creates a new customer queue.
@@ -15,36 +15,36 @@ public class CustomerQueue {
     public CustomerQueue(int queueLength, Gui gui) {
         this.gui = gui;
         this.queue = new Customer[queueLength];
-        this.firstInQueue = 0;
-        this.lastInQueue = 0;
+        this.queueHeadPointer = 0;
+        this.queueTailPointer = -1;
 	}
 
 	public int enqueue(Customer customer) {
-        int queueCurrentLast = lastInQueue;
-        int nextQueuePos = (lastInQueue + 1) % queue.length;
+        int currentQueueTail = queueTailPointer;
+        int nextQueueTail = (queueTailPointer + 1) % queue.length;
 
-        if (queue[nextQueuePos] != null) {
+        if (queue[nextQueueTail] != null) {
             return -1;
         }
 
-        queue[nextQueuePos] = customer;
-        gui.fillLoungeChair(nextQueuePos, customer);
+        queue[nextQueueTail] = customer;
+        gui.fillLoungeChair(nextQueueTail, customer);
 
-        lastInQueue = nextQueuePos;
+        queueTailPointer = nextQueueTail;
 
-        return queueCurrentLast;
+        return currentQueueTail;
     }
 
     public Customer dequeue() {
-        Customer r = queue[firstInQueue];
+        Customer r = queue[queueHeadPointer];
         if (r == null) {
             return null;
         }
 
-        queue[firstInQueue] = null;
-        gui.emptyLoungeChair(firstInQueue);
+        queue[queueHeadPointer] = null;
+        gui.emptyLoungeChair(queueHeadPointer);
 
-        firstInQueue = (firstInQueue + 1) % queue.length;
+        queueHeadPointer = (queueHeadPointer + 1) % queue.length;
 
         return r;
     }

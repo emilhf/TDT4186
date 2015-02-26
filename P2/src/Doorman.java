@@ -2,7 +2,7 @@
  * This class implements the doorman's part of the
  * Barbershop thread synchronization example.
  */
-public class Doorman extends Thread {
+public class Doorman implements Runnable {
     /**
      * Creates a new doorman.
      *
@@ -12,20 +12,29 @@ public class Doorman extends Thread {
 
     CustomerQueue queue;
     Gui gui;
+    Thread thread;
 
     public Doorman(CustomerQueue queue, Gui gui) {
         this.queue = queue;
         this.gui = gui;
+        this.thread = new Thread(this, "doorman");
     }
 
     /**
      * Starts the doorman running as a separate thread.
      */
     public void startThread() {
+        thread.start();
+    }
+
+    public void run() {
         while (true) {
             addCustomer();
             try {
-                sleep(Globals.doormanSleep);
+                int min = -Globals.doormanSleep / 2;
+                int max = -Globals.doormanSleep / 2;
+                int r = min + (int) (Math.random() * (max - min + 1));
+                Thread.sleep(Globals.doormanSleep + r);
             } catch (InterruptedException e) {
                 break;
             }
@@ -35,9 +44,7 @@ public class Doorman extends Thread {
     /**
      * Stops the doorman thread.
      */
-    public void stopThread() {
-        System.out.println("goodbye");
-    }
+    public void stopThread() {}
 
     public void addCustomer() {
         gui.println("New customer");
