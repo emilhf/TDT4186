@@ -1,7 +1,3 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
 /**
  * The main class of the P3 exercise. This class is only partially complete.
  */
@@ -34,7 +30,11 @@ public class Simulator implements Constants {
      * The average length between process arrivals
      */
     private long avgArrivalInterval;
-    // Add member variables as needed
+
+    // NEW
+    private CPU cpu;
+    private IO io;
+
 
     /**
      * Constructs a scheduling simulator with the given parameters.
@@ -57,8 +57,13 @@ public class Simulator implements Constants {
         statistics = new Statistics();
         eventQueue = new EventQueue();
         memory = new Memory(memoryQueue, memorySize, statistics);
+        cpu = new CPU(cpuQueue, maxCpuTime, statistics);
+        io = new IO(ioQueue, avgIoTime, statistics);
         clock = 0;
+
         // Add code as needed
+
+        //memory = new Memory(cpuQueue, memorySize, statistics);
     }
 
     /**
@@ -67,33 +72,30 @@ public class Simulator implements Constants {
      * GUI is clicked.
      */
     public void simulate() {
-        // TODO: You may want to extend this method somewhat.
-
-        System.out.print("Simulating...");
-        // Genererate the first process arrival event
+        System.out.print("Simulating...\n");
         eventQueue.insertEvent(new Event(NEW_PROCESS, 0));
-        // Process events until the simulation length is exceeded:
+
+        // Agenda loop
         while (clock < simulationLength && !eventQueue.isEmpty()) {
-            // Find the next event
+
             Event event = eventQueue.getNextEvent();
-            // Find out how much time that passed...
+
+            // Update clock
             long timeDifference = event.getTime() - clock;
-            // ...and update the clock.
             clock = event.getTime();
+
             // Let the memory unit and the GUI know that time has passed
             memory.timePassed(timeDifference);
             gui.timePassed(timeDifference);
+            cpu.timePassed(timeDifference);
+            io.timePassed(timeDifference);
+
             // Deal with the event
             if (clock < simulationLength) {
                 processEvent(event);
             }
-
-            // Note that the processing of most events should lead to new
-            // events being added to the event queue!
-
         }
         System.out.println("..done.");
-        // End the simulation by printing out the required statistics
         statistics.printReport(simulationLength);
     }
 
@@ -106,142 +108,116 @@ public class Simulator implements Constants {
     private void processEvent(Event event) {
         switch (event.getType()) {
             case NEW_PROCESS:
+
                 createProcess();
                 break;
+
             case SWITCH_PROCESS:
+
                 switchProcess();
                 break;
+
             case END_PROCESS:
+
                 endProcess();
                 break;
+
             case IO_REQUEST:
+
                 processIoRequest();
                 break;
+
             case END_IO:
+
                 endIoOperation();
                 break;
+
         }
     }
 
     /**
      * Simulates a process arrival/creation.
+     * When a process is submitted, a new process is added to event queue.
      */
     private void createProcess() {
         // Create a new process
         Process newProcess = new Process(memory.getMemorySize(), clock);
         memory.insertProcess(newProcess);
         flushMemoryQueue();
+
         // Add an event for the next process arrival
         long nextArrivalTime = clock + 1 + (long) (2 * Math.random() * avgArrivalInterval);
         eventQueue.insertEvent(new Event(NEW_PROCESS, nextArrivalTime));
+
         // Update statistics
         statistics.nofCreatedProcesses++;
     }
 
-    /**
-     * Transfers processes from the memory queue to the ready queue as long as there is enough
-     * memory for the processes.
-     */
     private void flushMemoryQueue() {
         Process p = memory.checkMemory(clock);
-        // As long as there is enough memory, processes are moved from the memory queue to the cpu queue
         while (p != null) {
 
-            // TODO: Add this process to the CPU queue!
-            // Also add new events to the event queue if needed
+            /** Admits process to memory, wakes CPU if idle */
+            Event cpuEvent = cpu.insertProcess(p, clock);
+            if (cpuEvent != null) {
+                eventQueue.insertEvent(cpuEvent);
+            }
 
-            // Since we haven't implemented the CPU and I/O device yet,
-            // we let the process leave the system immediately, for now.
-            memory.processCompleted(p);
-            // Try to use the freed memory:
-            flushMemoryQueue();
-            // Update statistics
             p.updateStatistics(statistics);
-
-            // Check for more free memory
             p = memory.checkMemory(clock);
         }
     }
 
-    /**
-     * Simulates a process switch.
-     */
     private void switchProcess() {
-        // Incomplete
+        eventQueue.insertEvent(cpu.handleSwitch(clock));
+        gui.setCpuActive(cpu.getCurrentProcess());
     }
 
     /**
      * Ends the active process, and deallocates any resources allocated to it.
      */
     private void endProcess() {
-        // Incomplete
+        memory.updateMemory(cpu.getCurrentProcess());
+        eventQueue.insertEvent(cpu.handleEnd(clock));
+        gui.setCpuActive(cpu.getCurrentProcess());
+        flushMemoryQueue();
     }
 
-    /**
-     * Processes an event signifying that the active process needs to
-     * perform an I/O operation.
-     */
     private void processIoRequest() {
-        // Incomplete
+
+        Event ioEvent = io.insertProcess(cpu.getCurrentProcess(), clock);
+        if (ioEvent != null) {
+            eventQueue.insertEvent(ioEvent);
+        }
+        eventQueue.insertEvent(cpu.handleIO(clock));
+        gui.setIoActive(io.getCurrentProcess());
+        gui.setCpuActive(cpu.getCurrentProcess());
+
     }
 
-    /**
-     * Processes an event signifying that the process currently doing I/O
-     * is done with its I/O operation.
-     */
     private void endIoOperation() {
-        // Incomplete
-    }
 
-    /**
-     * Reads a number from the an input reader.
-     *
-     * @param reader The input reader from which to read a number.
-     * @return The number that was inputted.
-     */
-    public static long readLong(BufferedReader reader) {
-        try {
-            return Long.parseLong(reader.readLine());
-        } catch (IOException ioe) {
-            return 100;
-        } catch (NumberFormatException nfe) {
-            return 0;
+        System.out.printf("IO Op completed at %d\n", clock);
+        Event nextCPU = cpu.insertProcess(io.getCurrentProcess(), clock);
+        if (nextCPU != null) {
+            eventQueue.insertEvent(nextCPU);
         }
+        Event nextIO = io.handleEndIO(clock);
+        if (nextIO != null) {
+            eventQueue.insertEvent(nextIO);
+        }
+        gui.setIoActive(io.getCurrentProcess());
+        gui.setCpuActive(cpu.getCurrentProcess());
     }
 
-    /**
-     * The startup method. Reads relevant parameters from the standard input,
-     * and starts up the GUI. The GUI will then start the simulation when
-     * the user clicks the "Start simulation" button.
-     *
-     * @param args Parameters from the command line, they are ignored.
-     */
     public static void main(String args[]) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Please input system parameters: ");
+        long memorySize = Long.valueOf(args[0]);
+        long maxCpuTime = Long.valueOf(args[1]);
+        long avgIoTime = Long.valueOf(args[2]);
+        long simulationLength = Long.valueOf(args[3]);
+        long avgArrivalInterval = Long.valueOf(args[4]);
 
-        System.out.print("Memory size (KB): ");
-        long memorySize = readLong(reader);
-        while (memorySize < 400) {
-            System.out.println("Memory size must be at least 400 KB. Specify memory size (KB): ");
-            memorySize = readLong(reader);
-        }
-
-        System.out.print("Maximum uninterrupted cpu time for a process (ms): ");
-        long maxCpuTime = readLong(reader);
-
-        System.out.print("Average I/O operation time (ms): ");
-        long avgIoTime = readLong(reader);
-
-        System.out.print("Simulation length (ms): ");
-        long simulationLength = readLong(reader);
-        while (simulationLength < 1) {
-            System.out.println("Simulation length must be at least 1 ms. Specify simulation length (ms): ");
-            simulationLength = readLong(reader);
-        }
-
-        System.out.print("Average time between process arrivals (ms): ");
-        long avgArrivalInterval = readLong(reader);
+        System.out.printf("Starting with input: \n mem size: \t\t\t\t%d kB\n CPU time: \t\t\t\t%d ms \n I/O time: \t\t\t\t%d ms \n Arrival interval: \t\t%d ms \n simulation lenght: \t%d ms \n", memorySize, maxCpuTime, avgIoTime, avgArrivalInterval, simulationLength);
 
         SimulationGui gui = new SimulationGui(memorySize, maxCpuTime, avgIoTime, simulationLength, avgArrivalInterval);
     }

@@ -3,21 +3,9 @@
  * the memory device of the simulated system.
  */
 public class Memory {
-    /**
-     * The queue of processes waiting for free memory
-     */
     private Queue memoryQueue;
-    /**
-     * A reference to the statistics collector
-     */
     private Statistics statistics;
-    /**
-     * The amount of memory in the memory device
-     */
     private long memorySize;
-    /**
-     * The amount of free memory in the memory device
-     */
     private long freeMemory;
 
     /**
@@ -34,20 +22,14 @@ public class Memory {
         freeMemory = memorySize;
     }
 
-    /**
-     * Returns the amount of memory in the memory device.
-     *
-     * @return The size of the memory device.
-     */
+    public long getFreeMemory() {
+        return freeMemory;
+    }
+
     public long getMemorySize() {
         return memorySize;
     }
 
-    /**
-     * Adds a process to the memory queue.
-     *
-     * @param p The process to be added.
-     */
     public void insertProcess(Process p) {
         memoryQueue.insert(p);
     }
@@ -64,7 +46,6 @@ public class Memory {
         if (!memoryQueue.isEmpty()) {
             Process nextProcess = (Process) memoryQueue.getNext();
             if (nextProcess.getMemoryNeeded() <= freeMemory) {
-                // Allocate memory to this process
                 freeMemory -= nextProcess.getMemoryNeeded();
                 nextProcess.leftMemoryQueue(clock);
                 memoryQueue.removeNext();
@@ -72,6 +53,13 @@ public class Memory {
             }
         }
         return null;
+    }
+
+    /**
+     * When a process leaves we update free memory
+     */
+    public void updateMemory(Process p) {
+        this.freeMemory += p.getMemoryNeeded();
     }
 
     /**
@@ -84,16 +72,6 @@ public class Memory {
         if (memoryQueue.getQueueLength() > statistics.memoryQueueLargestLength) {
             statistics.memoryQueueLargestLength = memoryQueue.getQueueLength();
         }
-    }
-
-    /**
-     * This method is called when a process is exiting the system.
-     * The memory allocated to this process is freed.
-     *
-     * @param p The process that is leaving the system.
-     */
-    public void processCompleted(Process p) {
-        freeMemory += p.getMemoryNeeded();
     }
 }
 

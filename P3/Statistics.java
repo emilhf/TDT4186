@@ -5,25 +5,25 @@
  */
 public class Statistics {
     /**
-     * The number of processes that have exited the system
+     * A lot of redundant garbage comments
      */
     public long nofCompletedProcesses = 0;
-    /**
-     * The number of processes that have entered the system
-     */
     public long nofCreatedProcesses = 0;
-    /**
-     * The total time that all completed processes have spent waiting for memory
-     */
     public long totalTimeSpentWaitingForMemory = 0;
-    /**
-     * The time-weighted length of the memory queue, divide this number by the total time to get average queue length
-     */
     public long memoryQueueLengthTime = 0;
-    /**
-     * The largest memory queue length that has occured
-     */
     public long memoryQueueLargestLength = 0;
+
+    /**
+     * New stuff
+     */
+    // CPU
+    public long totalCpuProcessing = 0;
+    public long fractionCupProcessing = 0;
+    public long totalCpuWaiting = 0;
+    public long fractionCupWaiting = 0;
+
+    // I/O
+
 
     /**
      * Prints out a report summarizing all collected data about the simulation.

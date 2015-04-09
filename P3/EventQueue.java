@@ -32,8 +32,10 @@ public class EventQueue {
         if (event != null) {
             events.add(event);
             Collections.sort(events);
+            // System.out.printf("added event, total events: %d\n", events.size());
         }
     }
+
 
     /**
      * Removes and returns the earliest event (the event
@@ -42,6 +44,7 @@ public class EventQueue {
      * @return The event with the lowest time value in the queue.
      */
     public Event getNextEvent() {
+        // System.out.printf("removed event, total events: %d\n", events.size());
         return (Event) events.remove(0);
     }
 

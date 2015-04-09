@@ -8,67 +8,28 @@ import java.awt.*;
  * You will probably want to add more methods to this class.
  */
 public class Process implements Constants {
-    /**
-     * The ID of the next process to be created
-     */
+    // It is generally considered poor coding practice to add redundant comments.
     private static long nextProcessId = 1;
-    /**
-     * The font used by all processes
-     */
     private static Font font = new Font("Arial", Font.PLAIN, 10);
-    /**
-     * The ID of this process
-     */
     private long processId;
-    /**
-     * The color of this process
-     */
     private Color color;
-    /**
-     * The amount of memory needed by this process
-     */
     private long memoryNeeded;
-    /**
-     * The amount of cpu time still needed by this process
-     */
+    private long timeSpentInCpu = 0;
+
     private long cpuTimeNeeded;
     /**
      * The average time between the need for I/O operations for this process
      */
     private long avgIoInterval;
-    /**
-     * The time left until the next time this process needs I/O
-     */
-    private long timeToNextIoOperation = 0;
+    private long nextIO = 0;
 
-    /**
-     * The time that this process has spent waiting in the memory queue
-     */
+    private long timeToNextIoOperation = 0;
     private long timeSpentWaitingForMemory = 0;
-    /**
-     * The time that this process has spent waiting in the CPU queue
-     */
     private long timeSpentInReadyQueue = 0;
-    /**
-     * The time that this process has spent processing
-     */
-    private long timeSpentInCpu = 0;
-    /**
-     * The time that this process has spent waiting in the I/O queue
-     */
     private long timeSpentWaitingForIo = 0;
-    /**
-     * The time that this process has spent performing I/O
-     */
     private long timeSpentInIo = 0;
 
-    /**
-     * The number of times that this process has been placed in the CPU queue
-     */
     private long nofTimesInReadyQueue = 0;
-    /**
-     * The number of times that this process has been placed in the I/O queue
-     */
     private long nofTimesInIoQueue = 0;
 
     /**
@@ -84,21 +45,40 @@ public class Process implements Constants {
      * @param creationTime The global time when this process is created.
      */
     public Process(long memorySize, long creationTime) {
-        // Memory need varies from 100 kB to 25% of memory size
+
         memoryNeeded = 100 + (long) (Math.random() * (memorySize / 4 - 100));
-        // CPU time needed varies from 100 to 10000 milliseconds
         cpuTimeNeeded = 100 + (long) (Math.random() * 9900);
-        // Average interval between I/O requests varies from 1% to 25% of CPU time needed
         avgIoInterval = (1 + (long) (Math.random() * 25)) * cpuTimeNeeded / 100;
-        // The first and latest event involving this process is its creation
         timeOfLastEvent = creationTime;
-        // Assign a process ID
         processId = nextProcessId++;
-        // Assign a pseudo-random color used by the GUI
+        nextIO = getNextIO();
+
         int red = 64 + (int) ((processId * 101) % 128);
         int green = 64 + (int) ((processId * 47) % 128);
         int blue = 64 + (int) ((processId * 53) % 128);
         color = new Color(red, green, blue);
+    }
+
+    /**
+     * Whenever the process gets CPU time we check what the next event will be and update accordingly
+     */
+    public Event run(long quant, long clock) {
+
+        // Termination
+        if ((cpuTimeNeeded < nextIO) && (cpuTimeNeeded < quant)) {
+            return new Event(END_PROCESS, clock + cpuTimeNeeded);
+        }
+        // IO interrupt
+        else if (nextIO < quant) {
+            cpuTimeNeeded -= nextIO;
+            nextIO = getNextIO();
+            return new Event(IO_REQUEST, clock + nextIO);
+        }
+        // Preemption
+        // System.out.printf("Process running, time: %d, preempt time: %d", clock, clock + );
+        cpuTimeNeeded -= quant;
+        nextIO -= quant;
+        return new Event(SWITCH_PROCESS, clock + quant);
     }
 
     /**
@@ -150,6 +130,14 @@ public class Process implements Constants {
     public void updateStatistics(Statistics statistics) {
         statistics.totalTimeSpentWaitingForMemory += timeSpentWaitingForMemory;
         statistics.nofCompletedProcesses++;
+    }
+
+    /**
+     * next interval is +- 25% of avg interval
+     */
+    public long getNextIO() {
+        // return 100000;
+        return (long) ((1 - (Math.random() * 0.5)) * avgIoInterval + 1);
     }
 
     // Add more methods as needed
