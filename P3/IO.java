@@ -29,21 +29,23 @@ public class IO implements Constants {
         return currentProcess;
     }
 
-    private Process popQueue() {
+    private Process popQueue(long clock) {
         if (!ioQueue.isEmpty()) {
             Process nextProcess = (Process) ioQueue.removeNext();
+            nextProcess.leftIoQueue(clock);
             return nextProcess;
         }
         return null;
     }
 
     public Event handleEndIO(long clock) {
+        this.currentProcess.leftIo(clock);
         if (ioQueue.isEmpty()) {
             this.idle = true;
             this.currentProcess = null;
             return null;
         }
-        currentProcess = popQueue();
+        currentProcess = popQueue(clock);
         return new Event(END_IO, clock + getIOtime());
     }
 
@@ -56,6 +58,7 @@ public class IO implements Constants {
      */
     public Event insertProcess(Process p, long clock) {
         ioQueue.insert(p);
+        p.ioQueued();
         if (idle) {
             currentProcess = (Process) ioQueue.removeNext();
             idle = false;
@@ -65,11 +68,8 @@ public class IO implements Constants {
         return null;
     }
 
-    // TODO this shittu
+    // Update queue related vars
     public void timePassed(long timePassed) {
-        statistics.memoryQueueLengthTime += ioQueue.getQueueLength() * timePassed;
-        if (ioQueue.getQueueLength() > statistics.memoryQueueLargestLength) {
-            statistics.memoryQueueLargestLength = ioQueue.getQueueLength();
-        }
+        statistics.ioStats.update(timePassed, ioQueue.getQueueLength(), idle);
     }
 }

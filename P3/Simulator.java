@@ -2,33 +2,13 @@
  * The main class of the P3 exercise. This class is only partially complete.
  */
 public class Simulator implements Constants {
-    /**
-     * The queue of events to come
-     */
+
     private EventQueue eventQueue;
-    /**
-     * Reference to the memory unit
-     */
     private Memory memory;
-    /**
-     * Reference to the GUI interface
-     */
     private Gui gui;
-    /**
-     * Reference to the statistics collector
-     */
     private Statistics statistics;
-    /**
-     * The global clock
-     */
     private long clock;
-    /**
-     * The length of the simulation
-     */
     private long simulationLength;
-    /**
-     * The average length between process arrivals
-     */
     private long avgArrivalInterval;
 
     // NEW
@@ -61,9 +41,6 @@ public class Simulator implements Constants {
         io = new IO(ioQueue, avgIoTime, statistics);
         clock = 0;
 
-        // Add code as needed
-
-        //memory = new Memory(cpuQueue, memorySize, statistics);
     }
 
     /**
@@ -96,7 +73,7 @@ public class Simulator implements Constants {
             }
         }
         System.out.println("..done.");
-        statistics.printReport(simulationLength);
+        // TODO call statistic print
     }
 
     /**
@@ -148,9 +125,6 @@ public class Simulator implements Constants {
         // Add an event for the next process arrival
         long nextArrivalTime = clock + 1 + (long) (2 * Math.random() * avgArrivalInterval);
         eventQueue.insertEvent(new Event(NEW_PROCESS, nextArrivalTime));
-
-        // Update statistics
-        statistics.nofCreatedProcesses++;
     }
 
     private void flushMemoryQueue() {
@@ -163,7 +137,6 @@ public class Simulator implements Constants {
                 eventQueue.insertEvent(cpuEvent);
             }
 
-            p.updateStatistics(statistics);
             p = memory.checkMemory(clock);
         }
     }
@@ -197,7 +170,6 @@ public class Simulator implements Constants {
 
     private void endIoOperation() {
 
-        System.out.printf("IO Op completed at %d\n", clock);
         Event nextCPU = cpu.insertProcess(io.getCurrentProcess(), clock);
         if (nextCPU != null) {
             eventQueue.insertEvent(nextCPU);

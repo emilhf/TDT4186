@@ -9,28 +9,32 @@ import java.awt.*;
  */
 public class Process implements Constants {
     // It is generally considered poor coding practice to add redundant comments.
+
+    // Function related vars
     private static long nextProcessId = 1;
     private static Font font = new Font("Arial", Font.PLAIN, 10);
     private long processId;
     private Color color;
     private long memoryNeeded;
-    private long timeSpentInCpu = 0;
 
     private long cpuTimeNeeded;
-    /**
-     * The average time between the need for I/O operations for this process
-     */
     private long avgIoInterval;
     private long nextIO = 0;
 
-    private long timeToNextIoOperation = 0;
-    private long timeSpentWaitingForMemory = 0;
-    private long timeSpentInReadyQueue = 0;
-    private long timeSpentWaitingForIo = 0;
-    private long timeSpentInIo = 0;
+    // Logging vars
+    public long creationTime = 0;
+    public long timeSpentWaitingForMemory = 0;
+    public long timeSpentWaitingForCpu = 0;
+    public long timeSpentWaitingForIo = 0;
+    public long timeSpentInIo = 0;
+    public long timeSpentInCpu = 0;
+    public long timesPreempted = 0;
+    public long timesInIo = 0;
+    public long lifeTime = 0;
 
-    private long nofTimesInReadyQueue = 0;
-    private long nofTimesInIoQueue = 0;
+    public long nofTimesInCpuQueue = 0;
+    public long nofTimesInIoQueue = 0;
+    public boolean terminated = false;
 
     /**
      * The global time of the last event involving this process
@@ -50,6 +54,7 @@ public class Process implements Constants {
         cpuTimeNeeded = 100 + (long) (Math.random() * 9900);
         avgIoInterval = (1 + (long) (Math.random() * 25)) * cpuTimeNeeded / 100;
         timeOfLastEvent = creationTime;
+        this.creationTime = creationTime;
         processId = nextProcessId++;
         nextIO = getNextIO();
 
@@ -72,10 +77,11 @@ public class Process implements Constants {
         else if (nextIO < quant) {
             cpuTimeNeeded -= nextIO;
             nextIO = getNextIO();
+            timesInIo ++;
             return new Event(IO_REQUEST, clock + nextIO);
         }
         // Preemption
-        // System.out.printf("Process running, time: %d, preempt time: %d", clock, clock + );
+        timesPreempted++;
         cpuTimeNeeded -= quant;
         nextIO -= quant;
         return new Event(SWITCH_PROCESS, clock + quant);
@@ -100,41 +106,55 @@ public class Process implements Constants {
         g.drawString("" + processId, x + w / 2 - fm.stringWidth("" + processId) / 2, y + h / 2 + fm.getHeight() / 2);
     }
 
-    /**
-     * This method is called when the process leaves the memory queue (and
-     * enters the cpu queue).
-     *
-     * @param clock The time when the process leaves the memory queue.
-     */
+    // Methods for logging process time spent in queues
     public void leftMemoryQueue(long clock) {
         timeSpentWaitingForMemory += clock - timeOfLastEvent;
         timeOfLastEvent = clock;
     }
 
-    /**
-     * Returns the amount of memory needed by this process.
-     *
-     * @return The amount of memory needed by this process.
-     */
+    public void leftCpuQueue(long clock) {
+        timeSpentWaitingForCpu += clock - timeOfLastEvent;
+        timeOfLastEvent = clock;
+    }
+
+    public void leftIoQueue(long clock) {
+        timeSpentWaitingForIo += clock - timeOfLastEvent;
+        timeOfLastEvent = clock;
+    }
+
+    // Methods for logging time spent in facilities
+    public void leftCpu(long clock) {
+        timeSpentInCpu += clock - timeOfLastEvent;
+        timeOfLastEvent = clock;
+    }
+
+    public void leftIo(long clock) {
+        timeSpentInIo+= clock - timeOfLastEvent;
+        timeOfLastEvent = clock;
+    }
+
+    // Methods for logging process behaviour
+    // When a process is finished it should update the statistics
+    public void processTerminated(long clock, Statistics statistics){
+        this.leftCpu(clock);
+        this.terminated = true;
+        this.lifeTime = clock - this.creationTime;
+        statistics.logTerminatedProcess(this);
+    }
+
+    // When the simulation is over remaining processes also needs to be analyzed
+    public void processAnalyze(long clock, Statistics statistics){
+
+    }
+
+    public void cpuQueued(){nofTimesInCpuQueue++;}
+    public void ioQueued(){nofTimesInIoQueue++;}
+
     public long getMemoryNeeded() {
         return memoryNeeded;
     }
 
-    /**
-     * Updates the statistics collected by the given Statistic object, adding
-     * data collected by this process. This method is called when the process
-     * leaves the system.
-     *
-     * @param statistics The Statistics object to be updated.
-     */
-    public void updateStatistics(Statistics statistics) {
-        statistics.totalTimeSpentWaitingForMemory += timeSpentWaitingForMemory;
-        statistics.nofCompletedProcesses++;
-    }
 
-    /**
-     * next interval is +- 25% of avg interval
-     */
     public long getNextIO() {
         // return 100000;
         return (long) ((1 - (Math.random() * 0.5)) * avgIoInterval + 1);
