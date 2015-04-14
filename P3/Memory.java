@@ -38,9 +38,7 @@ public class Memory {
         return null;
     }
 
-    /**
-     * When a process leaves we update free memory
-     */
+    // Called when a process terminates
     public void updateMemory(Process p) {
         this.freeMemory += p.getMemoryNeeded();
     }

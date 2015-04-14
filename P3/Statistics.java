@@ -6,6 +6,8 @@
 public class Statistics {
 
     // All process stats are accumulated, averages computed at the end
+    // Processes are updated via the processTerminated method in Process.java
+    // This method is called by CPU.java
     private class Processes_stats{
         private long lifetime = 0;
         private long created = 0;
@@ -17,15 +19,25 @@ public class Statistics {
 
         public void update(Process p){
             lifetime += p.lifeTime;
-            this.created++;
-            if(p.terminated){this.finished++;}
-            this.timeInCpuQueue += p.timeSpentWaitingForCpu;
-            this.timeInIoQueue += p.timeSpentWaitingForIo;
-            this.timeInIo += p.timeSpentInIo;
-            this.timeInCpu += p.timeSpentInCpu;
+            created++;
+            if(p.terminated){finished++;}
+            timeInCpuQueue += p.timeSpentWaitingForCpu;
+            timeInIoQueue += p.timeSpentWaitingForIo;
+            timeInIo += p.timeSpentInIo;
+            timeInCpu += p.timeSpentInCpu;
         }
+
+        // TODO complete process stats
         public void print(){
-            System.out.println("Process statz");
+            System.out.println("Process stats:");
+            System.out.printf("Processes created: %d\n", created);
+            System.out.printf("Processes completed: %d\n", finished);
+            System.out.printf("Average lifetime: %dms\n", lifetime/finished);
+            System.out.printf("Average time spent in IO");
+            System.out.printf("Average time spent in IO queue");
+            System.out.printf("Average time spent in CPU");
+            System.out.printf("Average time spent in CPU queue");
+            System.out.printf("Average time spent in memory queue");;
         }
     }
 
@@ -42,7 +54,14 @@ public class Statistics {
         }
 
         private void print(){
-            System.out.println("IO statz");
+            System.out.println("IO unit stats:");
+            System.out.printf("Time spent processing IO request: %dms\n", timeBusy);
+            System.out.printf("Time spent idle: %dms\n", simulationTime - timeBusy);
+            System.out.printf("Fraction time spent busy: %.2f%%\n", (float)(100*timeBusy)/(simulationTime));
+            System.out.printf("Fraction time spent idle: %.2f%%\n", (100.0 - ((float)100*timeBusy)/(simulationTime)));
+            System.out.printf("Average queue length: %.2f\n", (float) timeQueue / simulationTime);
+            System.out.printf("Longest CPU queue: %d\n\n", longest);
+
         }
     }
 
@@ -58,7 +77,13 @@ public class Statistics {
         }
 
         public void print(){
-            System.out.println("CPU statz");
+            System.out.printf("CPU unit stats:");
+            System.out.printf("Time spent processing: %dms\n", timeBusy);
+            System.out.printf("Time spent idle: %d\n", simulationTime - timeBusy);
+            System.out.printf("Fraction time spent busy: %.2f%%\n", (float)(100*timeBusy)/(simulationTime));
+            System.out.printf("Fraction time spent idle: %.2f%%\n", (100.0 - ((float)100*timeBusy)/(simulationTime)));
+            System.out.printf("Average queue length: %.2f\n", (float)timeQueue/simulationTime);
+            System.out.printf("Longest CPU queue: %d\n\n", longest);
         }
     }
 
@@ -79,6 +104,7 @@ public class Statistics {
     public Memory_stats memStats;
 
     public void logTerminatedProcess(Process p){
+
         this.pStats.update(p);
     }
 
@@ -89,7 +115,14 @@ public class Statistics {
         this.cpuStats = new CPU_stats();
     }
 
-    // Holy shit what the FUCK is this!???
+    public void printSim(long simulationLength){
+        this.simulationTime = simulationLength;
+        this.cpuStats.print();
+        this.ioStats.print();
+        this.pStats.print();
+    }
+
+    // Holy SHIT what the FUCK is this!???-
     /**
     public void shame(long simulationLength) {
         System.out.println();

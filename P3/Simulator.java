@@ -73,7 +73,7 @@ public class Simulator implements Constants {
             }
         }
         System.out.println("..done.");
-        // TODO call statistic print
+        statistics.printSim(clock);
     }
 
     /**

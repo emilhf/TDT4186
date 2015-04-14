@@ -9,7 +9,6 @@
 
 public class CPU {
 
-    // These are self explanatory
     private Queue cpuQueue;
     private long maxCpuTime;
     private Process currentProcess;
