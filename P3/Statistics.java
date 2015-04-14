@@ -8,6 +8,7 @@ public class Statistics {
     // All process stats are accumulated, averages computed at the end
     // Processes are updated via the processTerminated method in Process.java
     // This method is called by CPU.java
+    // TODO: Round up remaining processes in system
     private class Processes_stats{
         private long lifetime = 0;
         private long created = 0;
@@ -26,18 +27,16 @@ public class Statistics {
             timeInIo += p.timeSpentInIo;
             timeInCpu += p.timeSpentInCpu;
         }
-
-        // TODO complete process stats
         public void print(){
             System.out.println("Process stats:");
             System.out.printf("Processes created: %d\n", created);
             System.out.printf("Processes completed: %d\n", finished);
             System.out.printf("Average lifetime: %dms\n", lifetime/finished);
-            System.out.printf("Average time spent in IO");
-            System.out.printf("Average time spent in IO queue");
-            System.out.printf("Average time spent in CPU");
-            System.out.printf("Average time spent in CPU queue");
-            System.out.printf("Average time spent in memory queue");;
+            System.out.printf("Average time spent in IO: %dms\n", timeInIo/created);
+            System.out.printf("Average time spent in IO queue %dms\n", timeInIoQueue/created);
+            System.out.printf("Average time spent in CPU %dms\n", timeInCpu/created);
+            System.out.printf("Average time spent in CPU queue %dms\n", timeInCpuQueue/created);
+            System.out.printf("Average time spent in memory queue %dms\n", (lifetime-(timeInCpu + timeInCpuQueue + timeInIo + timeInIoQueue))/created);
         }
     }
 
