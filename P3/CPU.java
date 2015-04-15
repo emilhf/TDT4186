@@ -79,6 +79,12 @@ public class CPU {
     public void timePassed(long timePassed) {
         statistics.cpuStats.update(timePassed, cpuQueue.getQueueLength(), idle);
     }
+
+    public void statisticizeRemaining() {
+        for (int i = 0; i < cpuQueue.getQueueLength(); i++) {
+            statistics.logProcess((Process) cpuQueue.get(i));
+        }
+    }
 }
 
 

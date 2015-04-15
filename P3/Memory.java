@@ -47,5 +47,11 @@ public class Memory {
     public void timePassed(long timePassed) {
         statistics.memStats.update(timePassed, memoryQueue.getQueueLength());
     }
+
+    public void statisticizeRemaining() {
+        for (int i = 0; i < memoryQueue.getQueueLength(); i++) {
+            statistics.logProcess((Process) memoryQueue.get(i));
+        }
+    }
 }
 

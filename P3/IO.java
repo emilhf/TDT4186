@@ -72,4 +72,10 @@ public class IO implements Constants {
     public void timePassed(long timePassed) {
         statistics.ioStats.update(timePassed, ioQueue.getQueueLength(), idle);
     }
+
+    public void statisticizeRemaining() {
+        for (int i = 0; i < ioQueue.getQueueLength(); i++) {
+            statistics.logProcess((Process) ioQueue.get(i));
+        }
+    }
 }

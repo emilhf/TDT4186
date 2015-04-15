@@ -73,6 +73,11 @@ public class Simulator implements Constants {
             }
         }
         System.out.println("..done.");
+
+        memory.statisticizeRemaining();
+        cpu.statisticizeRemaining();
+        io.statisticizeRemaining();
+
         statistics.printSim(clock);
     }
 

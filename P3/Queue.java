@@ -54,6 +54,10 @@ public class Queue extends JPanel implements Constants {
         repaint();
     }
 
+    public Object get(int i) {
+        return content.get(i);
+    }
+
     /**
      * Returns the first element in the queue, but does not remove it from the queue.
      *

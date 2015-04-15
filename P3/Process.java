@@ -139,7 +139,7 @@ public class Process implements Constants {
         this.leftCpu(clock);
         this.terminated = true;
         this.lifeTime = clock - this.creationTime;
-        statistics.logTerminatedProcess(this);
+        statistics.logProcess(this);
     }
 
     // When the simulation is over remaining processes also needs to be analyzed
