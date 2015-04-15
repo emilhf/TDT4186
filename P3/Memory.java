@@ -2,17 +2,13 @@
  * This class implements functionality associated with
  * the memory device of the simulated system.
  */
-public class Memory {
-    private Queue memoryQueue;
-    private Statistics statistics;
+public class Memory extends ProcessQueue {
     private long memorySize;
     private long freeMemory;
 
-    // Constructor
-    public Memory(Queue memoryQueue, long memorySize, Statistics statistics) {
-        this.memoryQueue = memoryQueue;
+    public Memory(Queue<Process> memoryQueue, long memorySize, Statistics statistics) {
+        super(memoryQueue, statistics);
         this.memorySize = memorySize;
-        this.statistics = statistics;
         freeMemory = memorySize;
     }
 
@@ -20,18 +16,14 @@ public class Memory {
         return memorySize;
     }
 
-    public void insertProcess(Process p) {
-        memoryQueue.insert(p);
-    }
-
     // Admits a process if there is memory for it.
     public Process checkMemory(long clock) {
-        if (!memoryQueue.isEmpty()) {
-            Process nextProcess = (Process) memoryQueue.getNext();
+        if (!isEmpty()) {
+            Process nextProcess = getNext();
             if (nextProcess.getMemoryNeeded() <= freeMemory) {
                 freeMemory -= nextProcess.getMemoryNeeded();
                 nextProcess.leftMemoryQueue(clock);
-                memoryQueue.removeNext();
+                getQueue().removeNext();
                 return nextProcess;
             }
         }
@@ -45,13 +37,7 @@ public class Memory {
 
     // Update stats
     public void timePassed(long timePassed) {
-        statistics.memStats.update(timePassed, memoryQueue.getQueueLength());
-    }
-
-    public void statisticizeRemaining() {
-        for (int i = 0; i < memoryQueue.getQueueLength(); i++) {
-            statistics.logProcess((Process) memoryQueue.get(i));
-        }
+        getStatistics().memStats.update(timePassed, getQueueLength());
     }
 }
 

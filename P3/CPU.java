@@ -1,23 +1,16 @@
 /**
- * Created by peter on 4/8/15.
- */
-
-/**
  * This class implements functionality associated with
  * the CPU of the simulated system.
  */
 
-public class CPU {
-
-    private Queue cpuQueue;
+public class CPU extends ProcessQueue {
     private long maxCpuTime;
     private Process currentProcess;
-    private Statistics statistics;
     private boolean idle = true;
 
     public Event handleEnd(long clock) {
-        currentProcess.processTerminated(clock, statistics);
-        if (cpuQueue.isEmpty()) {
+        currentProcess.processTerminated(clock, getStatistics());
+        if (isEmpty()) {
             this.idle = true;
             this.currentProcess = null;
             return null;
@@ -35,7 +28,7 @@ public class CPU {
 
     public Event handleIO(long clock) {
         currentProcess.leftCpu(clock);
-        if (cpuQueue.isEmpty()) {
+        if (isEmpty()) {
             this.idle = true;
             currentProcess = null;
             return null;
@@ -44,15 +37,14 @@ public class CPU {
         return currentProcess.run(maxCpuTime, clock);
     }
 
-    public CPU(Queue cpuQueue, long maxCpuTime, Statistics statistics) {
-        this.cpuQueue = cpuQueue;
-        this.statistics = statistics;
+    public CPU(Queue<Process> cpuQueue, long maxCpuTime, Statistics statistics) {
+        super(cpuQueue, statistics);
         this.maxCpuTime = maxCpuTime;
     }
 
     private Process popQueue(long clock) {
-        if (!cpuQueue.isEmpty()) {
-            Process nextProcess = (Process) cpuQueue.removeNext();
+        if (!isEmpty()) {
+            Process nextProcess = removeNext();
             nextProcess.leftCpuQueue(clock);
             return nextProcess;
         }
@@ -65,10 +57,10 @@ public class CPU {
 
     // Inserts a process and wakes up the processor (generates a CPU event) if found idle
     public Event insertProcess(Process p, long clock) {
-        cpuQueue.insert(p);
+        insertProcess(p);
         p.cpuQueued();
         if (idle) {
-            currentProcess = (Process) cpuQueue.removeNext();
+            currentProcess = (Process) getQueue().removeNext();
             idle = false;
             return p.run(maxCpuTime, clock);
         }
@@ -77,13 +69,7 @@ public class CPU {
 
     // update queue related vars
     public void timePassed(long timePassed) {
-        statistics.cpuStats.update(timePassed, cpuQueue.getQueueLength(), idle);
-    }
-
-    public void statisticizeRemaining() {
-        for (int i = 0; i < cpuQueue.getQueueLength(); i++) {
-            statistics.logProcess((Process) cpuQueue.get(i));
-        }
+        getStatistics().cpuStats.update(timePassed, getQueueLength(), idle);
     }
 }
 

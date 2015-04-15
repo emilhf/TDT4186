@@ -1,16 +1,9 @@
 /**
- * Created by peter on 4/8/15.
- */
-
-/**
  * This class implements functionality associated with
  * the I/O of the simulated system.
  */
-public class IO implements Constants {
-
-    private Queue ioQueue;
+public class IO extends ProcessQueue implements Constants {
     private Process currentProcess;
-    private Statistics statistics;
     private boolean idle = true;
     private long ioTime;
 
@@ -18,10 +11,9 @@ public class IO implements Constants {
         return ioTime;
     }
 
-    public IO(Queue ioQueue, long IOtime, Statistics statistics) {
-        this.ioQueue = ioQueue;
+    public IO(Queue<Process> ioQueue, long IOtime, Statistics statistics) {
+        super(ioQueue, statistics);
         this.ioTime = IOtime;
-        this.statistics = statistics;
         this.idle = true;
     }
 
@@ -30,8 +22,8 @@ public class IO implements Constants {
     }
 
     private Process popQueue(long clock) {
-        if (!ioQueue.isEmpty()) {
-            Process nextProcess = (Process) ioQueue.removeNext();
+        if (!isEmpty()) {
+            Process nextProcess = (Process) removeNext();
             nextProcess.leftIoQueue(clock);
             return nextProcess;
         }
@@ -40,7 +32,7 @@ public class IO implements Constants {
 
     public Event handleEndIO(long clock) {
         this.currentProcess.leftIo(clock);
-        if (ioQueue.isEmpty()) {
+        if (isEmpty()) {
             this.idle = true;
             this.currentProcess = null;
             return null;
@@ -57,10 +49,10 @@ public class IO implements Constants {
      * @param p The process to be added.
      */
     public Event insertProcess(Process p, long clock) {
-        ioQueue.insert(p);
+        insertProcess(p);
         p.ioQueued();
         if (idle) {
-            currentProcess = (Process) ioQueue.removeNext();
+            currentProcess = (Process) removeNext();
             idle = false;
             long time = clock + getIOtime();
             return new Event(END_IO, time);
@@ -70,12 +62,6 @@ public class IO implements Constants {
 
     // Update queue related vars
     public void timePassed(long timePassed) {
-        statistics.ioStats.update(timePassed, ioQueue.getQueueLength(), idle);
-    }
-
-    public void statisticizeRemaining() {
-        for (int i = 0; i < ioQueue.getQueueLength(); i++) {
-            statistics.logProcess((Process) ioQueue.get(i));
-        }
+        getStatistics().ioStats.update(timePassed, getQueueLength(), idle);
     }
 }

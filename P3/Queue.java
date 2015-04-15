@@ -7,11 +7,11 @@ import java.util.ArrayList;
  * functionality, as well as serving as a graphical component. This means
  * that updates to the queue will be automatically displayed in the GUI.
  */
-public class Queue extends JPanel implements Constants {
+public class Queue<T> extends JPanel implements Constants {
     /**
      * The content of the queue
      */
-    private ArrayList content;
+    private ArrayList<T> content;
     /**
      * The name of the queue
      */
@@ -40,7 +40,7 @@ public class Queue extends JPanel implements Constants {
         this.name = name;
         this.maxVisibleLength = maxVisibleLength;
         this.direction = direction;
-        content = new ArrayList();
+        content = new ArrayList<T>();
         setBackground(Color.white);
     }
 
@@ -49,12 +49,12 @@ public class Queue extends JPanel implements Constants {
      *
      * @param o The object to be added to the queue.
      */
-    public void insert(Object o) {
+    public void insert(T o) {
         content.add(o);
         repaint();
     }
 
-    public Object get(int i) {
+    public T get(int i) {
         return content.get(i);
     }
 
@@ -63,7 +63,7 @@ public class Queue extends JPanel implements Constants {
      *
      * @return The first object in the queue.
      */
-    public Object getNext() {
+    public T getNext() {
         return content.get(0);
     }
 
@@ -72,8 +72,8 @@ public class Queue extends JPanel implements Constants {
      *
      * @return The object that was the first one in the queue.
      */
-    public Object removeNext() {
-        Object result = content.remove(0);
+    public T removeNext() {
+        T result = content.remove(0);
         repaint();
         return result;
     }

@@ -64,9 +64,9 @@ public class SimulationGui extends JFrame implements Constants, ActionListener, 
      */
     public SimulationGui(long memorySize, long maxCpuTime, long avgIoTime, long simulationLength, long avgArrivalInterval) {
         super("Process scheduling simulator");
-        memoryQueue = new Queue("memory queue", 10, EAST);
-        cpuQueue = new Queue("CPU queue", 10, WEST);
-        ioQueue = new Queue("I/O queue", 10, EAST);
+        memoryQueue = new Queue<Process>("memory queue", 10, EAST);
+        cpuQueue = new Queue<Process>("CPU queue", 10, WEST);
+        ioQueue = new Queue<Process>("I/O queue", 10, EAST);
         timeElapsed = 0;
         simulator = new Simulator(memoryQueue, cpuQueue, ioQueue, memorySize, maxCpuTime, avgIoTime,
                 simulationLength, avgArrivalInterval, this);
